@@ -90,6 +90,5 @@ public class Maps implements Agent {
             + locationFormatted
             + ".";
     display = place.toString();
-    System.out.println(display);
   }
 }

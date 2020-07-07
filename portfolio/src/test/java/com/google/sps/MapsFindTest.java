@@ -28,7 +28,7 @@ public class MapsFindTest {
                 + "\"street-address\": \"\","
                 + "\"city\": \"San Jose\"},"
                 + "\"place-attraction\": \"restaurants\","
-                + "\"number\": \"\"}",
+                + "\"number\": \"-1\"}",
             "maps.find");
 
     Output output = tester.getOutput();
@@ -58,7 +58,7 @@ public class MapsFindTest {
                 + "\"street-address\": \"\","
                 + "\"city\": \"Italy\"},"
                 + "\"place-attraction\": \"restaurants\","
-                + "\"number\": \"\"}",
+                + "\"number\": \"-1\"}",
             "maps.find");
 
     Output output = tester.getOutput();
@@ -99,11 +99,11 @@ public class MapsFindTest {
   }
 
   @Test
-  public void testFindMissingParams() throws Exception {
+  public void testFindInvalidLimit() throws Exception {
 
     TestHelper tester =
         new TestHelper(
-            "find some restaurants",
+            "find 0 restaurants in Italy",
             "{\"location\": {"
                 + "\"country\": \"\","
                 + "\"zip-code\": \"\","
@@ -113,14 +113,44 @@ public class MapsFindTest {
                 + "\"subadmin-area\": \"\","
                 + "\"admin-area\": \"\","
                 + "\"street-address\": \"\","
-                + "\"city\": \"\"},"
+                + "\"city\": \"Italy\"},"
                 + "\"place-attraction\": \"restaurants\","
-                + "\"number\": \"\"}",
+                + "\"number\": 0}",
             "maps.find");
 
     Output output = tester.getOutput();
 
-    assertEquals("", output.getFulfillmentText());
+    assertEquals(
+        "Invalid input for number of restaurants. Please try again with a positive integer between 1 and 20.",
+        output.getFulfillmentText());
+    assertNull(output.getDisplay());
+  }
+
+  @Test
+  public void testFindInvalidUpperLimit() throws Exception {
+
+    TestHelper tester =
+        new TestHelper(
+            "find 5 restaurants in Italy",
+            "{\"location\": {"
+                + "\"country\": \"\","
+                + "\"zip-code\": \"\","
+                + "\"island\": \"\","
+                + "\"shortcut\": \"\","
+                + "\"business-name\": \"\","
+                + "\"subadmin-area\": \"\","
+                + "\"admin-area\": \"\","
+                + "\"street-address\": \"\","
+                + "\"city\": \"Italy\"},"
+                + "\"place-attraction\": \"restaurants\","
+                + "\"number\": 21}",
+            "maps.find");
+
+    Output output = tester.getOutput();
+
+    assertEquals(
+        "Invalid input for number of restaurants. Please try again with a positive integer between 1 and 20.",
+        output.getFulfillmentText());
     assertNull(output.getDisplay());
   }
 }

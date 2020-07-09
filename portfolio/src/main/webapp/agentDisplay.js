@@ -15,14 +15,17 @@ function displayResponse(stream) {
     } else if (outputAsJson.intent.includes("name.user.change")) {
       updateName(outputAsJson.display);
     } else if (outputAsJson.intent.includes("maps.search")) {
-        mapContainer = locationMap(outputAsJson.display);
-        appendDisplay(mapContainer);
+      mapContainer = locationMap(outputAsJson.display);
+      appendDisplay(mapContainer);
     } else if (outputAsJson.intent.includes("maps.find")) {
       if (moreButton) {
         moreButton.style.display = "none";
       }
       mapContainer = nearestPlacesMap(outputAsJson.display);
       appendDisplay(mapContainer);
+    } else if (outputAsJson.intent.includes("memory.keyword")) {
+      memoryContainer = createKeywordContainer(outputAsJson.display);
+      appendDisplay(memoryContainer);
     }
   }
   outputAudio(stream);

@@ -30,34 +30,29 @@ function displayResponse(stream) {
       }
       mapContainer = nearestPlacesMap(outputAsJson.display);
       appendDisplay(mapContainer);
-    } else if (outputAsJson.intent.includes("books.search") ||
-        outputAsJson.intent.includes("books.more") ||
-        outputAsJson.intent.includes("books.previous") || 
-        outputAsJson.intent.includes("books.library") ||
-        outputAsJson.intent.includes("books.results")) {
-      if (!outputAsJson.intent.includes("books.search") && 
-         !outputAsJson.intent.includes("books.library")){
+    } else if (isBooksIntent(outputAsJson.intent)) {
+      // Clear previous display if user is not making a new query
+      if (!isNewQuery(outputAsJson.intent)){
         clearPreviousDisplay(outputAsJson.redirect);
       }
+      // Place user input and fulfillment
       placeBooksUserInput(outputAsJson.userInput, "convo-container", outputAsJson.redirect);
       placeBooksFulfillment(outputAsJson.fulfillmentText, outputAsJson.redirect);
+      
+      // Get appropriate book container
+      var bookContainer;
       if (outputAsJson.fulfillmentText.includes("Which bookshelf would you like to see?")) {
-        bookShelfContainer = createBookshelfContainer(outputAsJson.display);
-        placeBookDisplay(bookShelfContainer, "convo-container", "bookshelf-names");
+        bookContainer = createBookshelfContainer(outputAsJson.display);
+      } else if (isBookInformationIntent(outputAsJson.intent)) {
+        bookContainer = createBookInfoContainer(outputAsJson.display, outputAsJson.intent, outputAsJson.redirect, "");
       } else {
         bookContainer = createBookContainer(outputAsJson.display, outputAsJson.redirect);
-        placeBookDisplay(bookContainer, "convo-container", outputAsJson.redirect);
       }
-
-    } else if (outputAsJson.intent.includes("books.description") ||
-        outputAsJson.intent.includes("books.preview")) {
-      clearPreviousDisplay(outputAsJson.redirect);
-
-      placeBooksUserInput(outputAsJson.userInput, "convo-container", outputAsJson.redirect);
-      placeBooksFulfillment(outputAsJson.fulfillmentText, outputAsJson.redirect);
-      infoContainer = createBookInfoContainer(outputAsJson.display, outputAsJson.intent, outputAsJson.redirect);
-      placeBookDisplay(infoContainer, "convo-container", outputAsJson.redirect);
-
+      //Place appropriate book container
+      placeBookDisplay(bookContainer, "convo-container", outputAsJson.redirect);
+      if (outputAsJson.intent.includes("preview")) {
+        loadPreview(outputAsJson.display);
+      }
     } else if (outputAsJson.intent.includes("workout.find")) {
       workoutContainer = workoutVideos(outputAsJson.display);
       appendDisplay(workoutContainer);
@@ -87,7 +82,7 @@ function placeUserInput(text, container) {
   }
   if (text != " (null) "){
     var formattedInput = text.substring(0, 1).toUpperCase() + text.substring(1); 
-    placeObjectContainer("<p>" + formattedInput + "</p>", "user-side", container);
+    placeChatContainer("<p style=\'color: white\'>" + formattedInput + "</p>", "user-side talk-bubble-user round", "right", document.getElementsByName("convo-container")[0]);
   }
 }
 
@@ -111,7 +106,7 @@ function placeBooksFulfillment(text, queryID) {
 
 
 function placeFulfillmentResponse(text) {
-  placeObjectContainer("<p>" + text + "</p>", "assistant-side", "convo-container");
+  placeChatContainer("<p>" + text + "</p>", "assistant-side talk-bubble-assistant round", "left", document.getElementsByName("convo-container")[0]);
   console.log(text);
   if (text.includes("Switching conversation language")) {
     window.sessionStorage.setItem("language", getLastWord(text));
@@ -120,12 +115,6 @@ function placeFulfillmentResponse(text) {
       method: 'POST',
       mode: 'no-cors'});
   }
-}
-
-function getLastWord(words) {
-    var split = words.split(/[ ]+/);
-    console.log(split);
-    return split[split.length - 1];
 }
 
 /**
@@ -140,5 +129,26 @@ function updateName(name) {
   } else {
       greetingContainer.innerHTML = "<h1>Hi, how can I help you?</h1>";
   }
-  
+}
+
+function isBooksIntent(intentName) {
+  return (intentName.includes("books."));
+}
+
+function isBooksDisplayIntent(intentName) {
+  return (intentName.includes("books.search") ||
+    intentName.includes("books.more") ||
+    intentName.includes("books.previous") || 
+    intentName.includes("books.library") ||
+    intentName.includes("books.results"));
+}
+
+function isNewQuery(intentName) {
+  return (intentName.includes("books.search") || 
+         intentName.includes("books.library"));
+}
+
+function isBookInformationIntent(intentName) {
+  return (intentName.includes("books.description") ||
+          intentName.includes("books.preview"));
 }

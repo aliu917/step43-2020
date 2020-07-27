@@ -28,9 +28,6 @@ var pastCommands = loadCommands();
 var commandIndex = pastCommands.length;
 var unsentLastCommand;
 
-var sessionId = "";
-var queryNumber = 0;
-window.onbeforeunload = deleteSessionInformation;
 
 /**
 * Function triggered with each character typed in the text input container that handles 
@@ -136,6 +133,10 @@ function authSetup() {
     var authContainer = document.getElementsByClassName("auth-link")[0];
     authContainer.innerHTML = "<a class=\"link\" href=\"" + displayText.authText + "\">" + displayText.logButton + "</a>";
     updateName(displayText.displayName);
+    //Checks if user is logged in or not
+    if (displayText.logButton == "Logout") {
+        isUserLoggedIn = true;
+    }
     getSessionID();
     // Clears any stored information in Datastore for this session upon loading
     deleteSessionInformation();
@@ -185,8 +186,25 @@ function isEmptyString(text) {
 }
 
 /**
+ * Retrieves Output object created by BookAgent for the specified bookshelf
+ * triggered by a Go To Bookshelf button in the display. Sends stream 
+ * to generic handler and does not specify a queryID (in order to generate new
+ * query)
+ * 
+ * @param intent name of book intent
+ * @param bookshelfName bookshelf to retrieve information from
+ */
+function goToBookshelf(intent, bookshelfName){
+  fetch('/book-agent?intent=' + intent + '&language=' + getLanguage() + '&session-id=' + sessionId + 
+    '&bookshelf=' + bookshelfName, {
+      method: 'POST'
+  }).then(response => response.text()).then(stream => displayResponse(stream));
+}
+
+/**
  * Retrieves Output object created by BookAgent for specified intent 
- * triggered by a button the display 
+ * triggered by a button the display. Sends stream to generic handler 
+ * and specifies a queryID to reference stored query.
  * 
  * @param intent name of book intent
  * @param queryID queryID for div that triggered button
@@ -195,13 +213,29 @@ function getBooksFromButton(intent, queryID){
   fetch('/book-agent?intent=' + intent + '&language=' + getLanguage() + '&session-id=' + sessionId + 
     '&query-id=' + queryID, {
       method: 'POST'
-  }).then(response => response.text()).then(stream =>displayBooksFromButton(stream));
+  }).then(response => response.text()).then(stream => displayResponse(stream));
 }
 
 /**
- * Retrieves Output object created by BookAgent for specified information intent 
- * triggered by a button the display. Number parameter specifies the Book object 
- * number to retrieve.
+ * Retrieves list of bookshelves to add the specified volume to
+ * based on valid bookshelves for the authenticated user. Function is
+ * triggered by a button to add volume to bookshelf 
+ * 
+ * @param intent name of book intent
+ * @param number index of book to retrieve information for
+ * @param queryID queryID for div that triggered button
+ */
+function getBookshelfNamesFromButton(intent, number, queryID){
+  fetch('/book-agent?intent=' + intent + '&language=' + getLanguage() + '&session-id=' + sessionId +
+    '&number=' + number + '&query-id=' + queryID, {
+      method: 'POST'
+  }).then(response => response.text()).then(stream =>displayBookshelvesToAdd(stream, number, queryID));
+}
+
+/**
+ * Retrieves Output object created by BookAgent for specified information intents.
+ * This function is triggered by pressing a button on the display for book
+ * description or book previews. The number parameter specifies the Book object number to retrieve.
  * 
  * @param intent name of book intent
  * @param number index of book to retrieve information for
@@ -211,15 +245,25 @@ function getBookInformation(intent, number, queryID){
   fetch('/book-agent?intent=' + intent + '&language=' + getLanguage() + '&session-id=' + sessionId +
     '&number=' + number + '&query-id=' + queryID, {
       method: 'POST'
-  }).then(response => response.text()).then(stream =>displayBookInfo(stream));
+  }).then(response => response.text()).then(stream => displayResponse(stream));
 }
 
-function getBookshelfInformation(intent, bookshelfName) {
+/**
+ * Adds or deletes specified book from specified query to specified bookshelf and displays 
+ * book information afterwards 
+ * 
+ * @param intent name of book intent
+ * @param bookshelfName name of bookshelf to edit
+ * @param number index of book to retrieve information for
+ * @param queryID queryID for div that triggered button for information
+ */
+function editBookshelf(intent, bookshelfName, number, queryID) {
   fetch('/book-agent?intent=' + intent + '&language=' + getLanguage() + '&session-id=' + sessionId +
-    '&bookshelf=' + bookshelfName, {
+    '&number=' + number + '&bookshelf=' + bookshelfName + '&query-id=' + queryID, {
       method: 'POST'
-  }).then(response => response.text()).then(stream =>displayBooksFromButton(stream));
+  }).then(response => response.text()).then(stream => displayBookAdded(stream, bookshelfName));
 }
+
 /**
  * Returns userID, if user is logged in, or guestID for the session otherwise
  */
@@ -240,4 +284,24 @@ function deleteSessionInformation(){
       console.log('Deleted comments for ' + sessionId)
   });
   return null;
+}
+
+/** Saves workout plan using SaveWorkoutServlet for current user
+ *
+ * @param workoutPlan workoutPlan string with userId, workoutPlanPlaylist, workoutPlanId 
+ */
+
+function saveWorkoutPlan(workoutPlan){
+
+  //Create new JSON oject for workout plan to be saved
+  var savedWorkoutPlan = new Object();
+  savedWorkoutPlan.userId = workoutPlan.userId;
+  savedWorkoutPlan.workoutPlanId  = workoutPlan.workoutPlanId;
+  var workoutPlanString= JSON.stringify(savedWorkoutPlan);
+
+  fetch('/save-workouts' + '?workout-plan=' + workoutPlanString, {
+      method: 'POST'
+  }).then(response => response.text()).then(() => {
+      console.log('Saved workout plan');
+  });
 }

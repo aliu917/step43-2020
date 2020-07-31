@@ -41,11 +41,11 @@ public class SessionIdServlet extends HttpServlet {
     String id;
 
     // Set up book likes for demo
-    try {
-      BooksSetUpHelper.setUpBookLikes(datastore);
-    } catch (FileNotFoundException e) {
-      log.error("Could not set up liked books for test users.");
-    }
+    // try {
+    //   BooksSetUpHelper.setUpBookLikes(datastore);
+    // } catch (FileNotFoundException e) {
+    //   log.error("Could not set up liked books for test users.");
+    // }
 
     if (userService.isUserLoggedIn()) {
       id = userService.getCurrentUser().getUserId();

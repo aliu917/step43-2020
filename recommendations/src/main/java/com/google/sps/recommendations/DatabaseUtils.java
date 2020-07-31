@@ -103,7 +103,6 @@ public class DatabaseUtils {
           fracEntity.setProperty(stemmedItem, existingRate + incrementValue);
         }
       }
-      fracEntity.setProperty("count", listCount);
     } catch (EntityNotFoundException e) {
       fracEntity = new Entity("Frac-" + stemmedListName, userID);
       for (String stemmedItem : stemmedItems) {
@@ -113,6 +112,7 @@ public class DatabaseUtils {
       fracEntity.setProperty("listName", stemmedListName);
       fracEntity.setProperty("timestamp", System.currentTimeMillis());
     }
+    fracEntity.setProperty("count", listCount);
     log.info("frac entity here" + fracEntity);
     datastore.put(fracEntity);
     try {

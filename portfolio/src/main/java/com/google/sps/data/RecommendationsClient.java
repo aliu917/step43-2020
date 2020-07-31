@@ -6,6 +6,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,20 @@ public class RecommendationsClient {
       String stemmedListName, List<String> items, boolean newList, boolean positiveFeedback)
       throws InvalidRequestException {
     log.info("making storeInfo api request");
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    executor.submit(
+        new Runnable() {
+          @Override
+          public void run() {
+            callRecommendationsAPI(stemmedListName, items, newList, positiveFeedback);
+          }
+        });
+
+    log.info("started api request");
+  }
+
+  private void callRecommendationsAPI(
+      String stemmedListName, List<String> items, boolean newList, boolean positiveFeedback) {
     RestTemplate restTemplate = new RestTemplate();
     String urlString =
         BASE_URL

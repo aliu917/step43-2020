@@ -114,7 +114,9 @@ public class RecommendationUtils {
       throw new IllegalStateException(
           "Cannot make recommendations when there are less than 3 other users.");
     }
-    Recommender rec = new Recommender((int) Math.ceil(Math.sqrt(uniqueItems.size())));
+    Recommender rec =
+        new Recommender(
+            (int) Math.ceil(Math.sqrt(Math.min(allUserEntities.size(), uniqueItems.size()))));
     rec.makeRecommendations(datastore, stemmedListName, allUserEntities, uniqueItems);
   }
 

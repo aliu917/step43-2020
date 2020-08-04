@@ -80,6 +80,7 @@ public class Memory implements Agent {
     this.userService = userService;
     this.datastore = datastore;
     this.recommender = recommender;
+    MemoryUtils.seedDatabase(datastore);
     setParameters(parameters);
   }
 
@@ -260,6 +261,17 @@ public class Memory implements Agent {
    */
   private void updateList(List<String> itemsToAdd)
       throws EntityNotFoundException, URISyntaxException {
+    updateList(itemsToAdd, true);
+  }
+
+  /**
+   * Updates an existing list with new items. If list doesn't exist, creates a brand new list in
+   * datastore. Creates more recommendations if requested.
+   *
+   * @param itemsToAdd List of strings to add to list.
+   */
+  private void updateList(List<String> itemsToAdd, boolean moreRecs)
+      throws EntityNotFoundException, URISyntaxException {
     boolean listExists =
         MemoryUtils.addToList(listName, userID, datastore, itemsToAdd, recommender);
     if (!listExists) {
@@ -270,7 +282,9 @@ public class Memory implements Agent {
       return;
     }
     fulfillment = "Updated!";
-    makeMoreRecommendations();
+    if (moreRecs) {
+      makeMoreRecommendations();
+    }
   }
 
   /**
@@ -284,7 +298,7 @@ public class Memory implements Agent {
       String suggestedItems =
           MemoryUtils.makeUserRecommendations(userID, datastore, listName, recommender);
       fulfillment +=
-          " Based on your list item history, you might be interested in adding "
+          " Based on your list item preferences, you might be interested in adding "
               + suggestedItems
               + " to your "
               + listName
@@ -349,11 +363,11 @@ public class Memory implements Agent {
     int start = 0;
     int end = listWords.length - 1;
     // Remove unnecessary words in the beginning
-    while (unwantedStrings.contains(listWords[start])) {
+    while (start < listWords.length && unwantedStrings.contains(listWords[start])) {
       start++;
     }
     // Remove unnecessary words from the end
-    while (unwantedStrings.contains(listWords[end])) {
+    while (end >= 0 && unwantedStrings.contains(listWords[end])) {
       end--;
     }
     StringBuilder sb = new StringBuilder();
@@ -397,7 +411,6 @@ public class Memory implements Agent {
   private void handleBadRecommendations(List<String> unwantedItems) throws URISyntaxException {
     MemoryUtils.provideNegativeFeedback(recommender, listName, unwantedItems);
     fulfillment = "Your preferences are noted.";
-    makeMoreRecommendations();
   }
 
   private void handleGoodRecommendations(Map<String, Value> parameters)
@@ -418,7 +431,7 @@ public class Memory implements Agent {
         addObjects.remove(removeItem);
       }
     }
-    updateList(addObjects);
+    updateList(addObjects, removeObjects.isEmpty());
   }
 
   /**

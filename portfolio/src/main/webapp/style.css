@@ -1,14 +1,18 @@
 body {
     background:white;
-    font-weight: 300;
     height: 100vh;
     margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-family: 'Roboto', sans-serif;
+    font-family:"Roboto", sans-serif !important;
 }
+
+html{
+    font-family:"Roboto", sans-serif;
+    -ms-text-size-adjust:100%;
+    -webkit-text-size-adjust:100%}
 
 /* CSS talk bubble */
 .talk-bubble-user {

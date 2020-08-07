@@ -200,13 +200,14 @@ function populateListContentScreen(listDisplayObject, listContentContainer) {
   downloadButton.innerHTML = "<img src = \"images/download.png\" class=\"download-image\" alt = \"Download\">";
   downloadButton.addEventListener("click", function() {
     var contentDiv = this.parentNode;
-    var regexp1 = /<[a-z]*?>(.*?)<\/[a-z]*?>/g;
-    var regexp2 = /<.*?>(.*?)<.*?>/g;
+    var regexp1 = /<li class="plain">(.*?)<\/[a-z]*?>/g;
+    var regexp2 = /<h1.*?>(.*?)<\/h1>/g;
     var listItems = [...contentDiv.innerHTML.matchAll(regexp1)];
-    var title = [...listItems[0][1].matchAll(regexp2)][0][1];
+    listItems = listItems.map(x=>x[1]);
+    var title = [...contentDiv.innerHTML.matchAll(regexp2)][0][1];
     var listText = title + "\n\n";
-    for (var i = 1; i < listItems.length; i++) {
-        listText += "- " + listItems[i][1] + "\n";
+    for (var i = 0; i < listItems.length; i++) {
+        listText += "- " + listItems[i] + "\n";
     }
     var blob = new Blob([listText], {type : "text/plain;charset=utf-8"});
     if (textFile !== null) {

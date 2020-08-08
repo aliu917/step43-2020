@@ -195,6 +195,10 @@ function outputAudio(stream) {
   getAudio(outputAsJson.byteStringToByteArray);
 
   if (outputAsJson.redirect != null) {
+    if (outputAsJson.intent.includes("language.switch")) {
+      window.sessionStorage.setItem("language", outputAsJson.redirect);
+      return;
+    }
     var aud = document.getElementById("sound-player");
     aud.onended = function() {
       if (!outputAsJson.intent.includes("books")) {

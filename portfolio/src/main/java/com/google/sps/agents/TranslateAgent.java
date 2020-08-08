@@ -68,12 +68,19 @@ public class TranslateAgent implements Agent {
     Translation translation =
         translate.translate(
             text,
-            Translate.TranslateOption.sourceLanguage(languageFromCode),
-            Translate.TranslateOption.targetLanguage(languageToCode),
+            Translate.TranslateOption.sourceLanguage(getShortLanguageCode(languageFromCode)),
+            Translate.TranslateOption.targetLanguage(getShortLanguageCode(languageToCode)),
             // Use "base" for standard edition, "nmt" for the premium model.
             Translate.TranslateOption.model("nmt"));
 
     System.out.printf("TranslatedText:\n", translation.getTranslatedText());
     return translation;
+  }
+
+  private static String getShortLanguageCode(String languageCode) {
+    if (languageCode == null) {
+      languageCode = "en-US";
+    }
+    return languageCode.substring(0, Math.min(2, languageCode.length()));
   }
 }

@@ -81,12 +81,12 @@ public class AudioInputServlet extends HttpServlet {
 
   private Output handleForeignQuery(ByteString bytestring, String language, String sessionID) {
     String languageCode = AgentUtils.getLanguageCode(language);
-    String detectedUserInputString =
+    String userInput =
         AudioUtils.detectSpeechLanguage(bytestring.toByteArray(), languageCode);
     String englishLanguageCode = AgentUtils.getLanguageCode("English");
-    // Google Translate API - convert detectedUserInputString from language to English
+    // Google Translate API - convert userInput from language to English
     Translation inputTranslation =
-        TranslateAgent.translate(detectedUserInputString, languageCode, englishLanguageCode);
+        TranslateAgent.translate(userInput, languageCode, englishLanguageCode);
 
     String translatedInputText = inputTranslation.getTranslatedText();
     ByteString inputByteString = null;
@@ -96,25 +96,27 @@ public class AudioInputServlet extends HttpServlet {
       e.printStackTrace();
     }
 
-    DialogFlowClient englishOutput =
+    DialogFlowClient englishResult =
         (new TextInputServlet()).detectIntentStream(translatedInputText, englishLanguageCode);
-
+    Output englishOutput =
+          AgentUtils.getOutput(
+              englishResult, languageCode, userService, datastore, sessionID, recommender);
     // Google Translate API - convert input and fulfillment to appropriate language
-    String userInput = englishOutput.getQueryText();
     String fulfillment = englishOutput.getFulfillmentText();
-    String userInputTranslation =
-        TranslateAgent.translate(userInput, englishLanguageCode, languageCode).getTranslatedText();
     String fulfillmentTranslation =
         TranslateAgent.translate(fulfillment, englishLanguageCode, languageCode)
             .getTranslatedText();
     byte[] byteArray = AgentUtils.getByteStringToByteArray(fulfillmentTranslation, languageCode);
+    System.out.println("user input: " + userInput);
+    System.out.println("fulfillment output: " + fulfillmentTranslation);
     Output languageOutput =
         new Output(
-            userInputTranslation,
+            userInput,
             fulfillmentTranslation,
             byteArray,
-            englishOutput.getIntentName(),
-            sessionID);
+            null,
+            englishOutput.getRedirect(),
+            englishResult.getIntentName());
     return languageOutput;
   }
 }

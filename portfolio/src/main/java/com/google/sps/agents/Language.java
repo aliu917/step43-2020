@@ -14,6 +14,7 @@ public class Language implements Agent {
 
   public Language(String intentName, Map<String, Value> parameters) {
     this.intentName = intentName;
+    System.out.println(parameters);
     setParameters(parameters);
   }
 
@@ -36,6 +37,6 @@ public class Language implements Agent {
 
   @Override
   public String getRedirect() {
-    return null;
+    return language;
   }
 }

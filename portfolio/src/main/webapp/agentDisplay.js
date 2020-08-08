@@ -87,18 +87,13 @@ function placeBooksUserInput(text, container, queryID) {
 
 function placeBooksFulfillment(text, queryID) {
   placeChatContainer("<p>" + text + "</p>", "assistant-side-" + queryID + " talk-bubble-assistant round", "left", document.getElementsByName("convo-container")[0], 15);
-  if (text.includes("Switching conversation language")) {
-    window.sessionStorage.setItem("language", getLastWord(text));
-  }
 }
 
 
 function placeFulfillmentResponse(text) {
   placeChatContainer("<p>" + text + "</p>", "assistant-side talk-bubble-assistant round", "left", document.getElementsByName("convo-container")[0], 0);
   console.log(text);
-  if (text.includes("Switching conversation language")) {
-    window.sessionStorage.setItem("language", getLastWord(text));
-  } else if (text.includes("Please allow me to access your Google Books account first.")) {
+  if (text.includes("Please allow me to access your Google Books account first.")) {
     fetch("/auth", {
       method: 'POST',
       mode: 'no-cors'});
